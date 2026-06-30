@@ -3,8 +3,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-
-
 export interface NombaCreateVirtualAccountPayload {
   accountRef: string;
   accountName: string;
@@ -65,13 +63,11 @@ export class NombaProviderError extends Error {
     description?: string,
     statusCode?: number
   ) {
-
     super(message);
 
     this.name = "NombaProviderError";
 
     this.description = description;
-
     this.statusCode = statusCode;
   }
 }
@@ -79,7 +75,7 @@ export class NombaProviderError extends Error {
 
 
 let accessToken: string | null = null;
-
+let refreshToken: string | null = null;
 let tokenExpiry: number | null = null;
 
 
@@ -92,23 +88,14 @@ const getNombaAccessToken = async (): Promise<string> => {
     tokenExpiry &&
     Date.now() < tokenExpiry
   ) {
-
     return accessToken;
   }
 
 
-
-  const baseUrl =
-    process.env.NOMBA_BASE_URL;
-
-  const accountId =
-    process.env.NOMBA_ACCOUNT_ID;
-
-  const clientId =
-    process.env.NOMBA_CLIENT_ID;
-
-  const clientSecret =
-    process.env.NOMBA_CLIENT_SECRET;
+  const baseUrl = process.env.NOMBA_BASE_URL;
+  const accountId = process.env.NOMBA_ACCOUNT_ID;
+  const clientId = process.env.NOMBA_CLIENT_ID;
+  const clientSecret = process.env.NOMBA_CLIENT_SECRET;
 
 
 
@@ -118,7 +105,6 @@ const getNombaAccessToken = async (): Promise<string> => {
     !clientId ||
     !clientSecret
   ) {
-
     throw new Error(
       "Nomba environment variables missing"
     );
@@ -134,27 +120,23 @@ const getNombaAccessToken = async (): Promise<string> => {
 
         `${baseUrl}/v1/auth/token/issue`,
 
-
         {
-          grant_type:
-            "client_credentials",
+          grant_type: "client_credentials",
 
-          client_id:
-            clientId,
+          client_id: clientId,
 
-          client_secret:
-            clientSecret,
+          client_secret: clientSecret,
         },
 
-
         {
+          timeout: 15000,
+
           headers: {
 
             accountId,
 
             "Content-Type":
               "application/json",
-
           },
         }
       );
@@ -170,8 +152,18 @@ const getNombaAccessToken = async (): Promise<string> => {
     accessToken =
       response.data.data.access_token;
 
+
+    refreshToken =
+      response.data.data.refresh_token;
+
+
+    // Nomba token expires in 30 minutes
+    // refresh 1 minute before expiry
+
     tokenExpiry =
-      Date.now() + (25 * 60 * 1000);
+      new Date(
+        response.data.data.expiresAt
+      ).getTime() - 60000;
 
 
 
@@ -196,12 +188,13 @@ const getNombaAccessToken = async (): Promise<string> => {
       err.message,
 
       err.response?.status
-
     );
 
   }
 
 };
+
+
 
 
 
@@ -238,6 +231,7 @@ export const nombaService = {
       throw new Error(
         "Nomba configuration missing"
       );
+
     }
 
 
@@ -251,21 +245,19 @@ export const nombaService = {
 
           `${baseUrl}/v1/accounts/virtual`,
 
-
           payload,
 
 
           {
 
-            headers: {
+            timeout: 15000,
 
+            headers: {
 
               Authorization:
                 `Bearer ${token}`,
 
-
               accountId,
-
 
               "Content-Type":
                 "application/json",
@@ -283,7 +275,6 @@ export const nombaService = {
 
 
     } catch(error) {
-
 
 
       const err =
@@ -306,11 +297,9 @@ export const nombaService = {
 
         "Nomba virtual account creation failed",
 
-
         err.response?.data?.description ||
         err.response?.data?.message ||
         err.message,
-
 
         err.response?.status
 

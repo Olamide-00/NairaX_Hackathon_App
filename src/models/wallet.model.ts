@@ -44,11 +44,6 @@ const WalletSchema = new Schema<IWallet>(
       type: String,
       default: "nomba",
     },
-    accountHolderId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     accountRef: {
       type: String,
       required: true,
