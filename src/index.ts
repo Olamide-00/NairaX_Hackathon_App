@@ -1,0 +1,20 @@
+export const AUTH = {
+  JWT_ACCESS_EXPIRES: "15m",
+  JWT_REFRESH_EXPIRES: "7d",
+  REFRESH_EXPIRES_MS: 7 * 24 * 60 * 60 * 1000, // 7 days
+  MAX_LOGIN_ATTEMPTS: 5,
+  LOCK_DURATION_MS: 15 * 60 * 1000, // 15 minutes
+  BCRYPT_ROUNDS: 12,
+} as const;
+
+export const HTTP = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  TOO_MANY_REQUESTS: 429,
+  INTERNAL: 500,
+} as const;
