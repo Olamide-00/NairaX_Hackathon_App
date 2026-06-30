@@ -1,4 +1,4 @@
-import nodemailer, { Transporter } from "nodemailer";
+import axios from "axios";
 import { logger } from "../../../utils/logger.utils";
 import { config } from "dotenv";
 
@@ -9,71 +9,185 @@ interface EmailTemplate {
   html: string;
 }
 
+
 class EmailService {
-  private transporter: Transporter;
+
+  private apiKey: string;
+  private mailAgentAlias: string;
+  private fromEmail: string;
+  private fromName: string;
+
 
   constructor() {
-    const host = process.env.SMTP_HOST;
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
 
-    if (!host || !user || !pass) {
+    const apiKey = process.env.ZEPTOMAIL_API_KEY;
+    const mailAgentAlias = process.env.ZEPTOMAIL_MAIL_AGENT_ALIAS;
+    const fromEmail = process.env.MAIL_FROM_EMAIL;
+    const fromName = process.env.MAIL_FROM_NAME;
+
+
+    if (
+      !apiKey ||
+      !mailAgentAlias ||
+      !fromEmail
+    ) {
       throw new Error(
-        "Missing SMTP configuration. Ensure SMTP_HOST, SMTP_USER, and SMTP_PASS are set in .env",
+        "Missing ZeptoMail configuration"
       );
     }
 
-    this.transporter = nodemailer.createTransport({
-      host,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === "true",
-      auth: { user, pass },
-    });
+
+    this.apiKey = apiKey;
+    this.mailAgentAlias = mailAgentAlias;
+    this.fromEmail = fromEmail;
+    this.fromName = fromName || "NairaX";
   }
 
-  async send(to: string, template: EmailTemplate): Promise<void> {
-    // Add input validation
-    if (!to || !template?.subject || !template?.html) {
-      throw new Error("Invalid email parameters");
+
+
+  async send(
+    to: string,
+    template: EmailTemplate
+  ): Promise<void> {
+
+
+    if (
+      !to ||
+      !template?.subject ||
+      !template?.html
+    ) {
+      throw new Error(
+        "Invalid email parameters"
+      );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
     if (!emailRegex.test(to)) {
-      throw new Error("Invalid recipient email address");
+      throw new Error(
+        "Invalid recipient email address"
+      );
     }
+
+
 
     try {
-      await this.transporter.sendMail({
-        from: `"${process.env.MAIL_FROM_NAME ?? "NairaX"}" <${process.env.MAIL_FROM_ADDRESS}>`,
-        to,
-        subject: template.subject,
-        html: template.html,
-      });
-      logger.info("Email sent successfully", { to, subject: template.subject });
+
+
+      await axios.post(
+        "https://api.zeptomail.com/v1.1/email",
+        {
+          from: {
+            address: this.fromEmail,
+            name: this.fromName,
+          },
+
+          to: [
+            {
+              email_address: {
+                address: to,
+              },
+            },
+          ],
+
+          subject: template.subject,
+
+          htmlbody: template.html,
+
+          mail_agent_alias:
+            this.mailAgentAlias,
+        },
+
+        {
+          headers: {
+            Authorization:
+              this.apiKey,
+
+            "Content-Type":
+              "application/json",
+          },
+        }
+      );
+
+
+
+      logger.info(
+        "Email sent successfully",
+        {
+          to,
+          subject: template.subject,
+        }
+      );
+
+
     } catch (err) {
-      logger.error("Email send failed", {
-        to,
-        subject: template.subject,
-        error: err instanceof Error ? err.message : "Unknown error",
-      });
-      throw new Error("Failed to send email. Please try again later.");
+
+
+      logger.error(
+        "Email send failed",
+        {
+          to,
+          subject: template.subject,
+          error:
+            err instanceof Error
+              ? err.message
+              : "Unknown error",
+        }
+      );
+
+
+      throw new Error(
+        "Failed to send email. Please try again later."
+      );
     }
   }
+
+
 
   async verify(): Promise<void> {
+
+    // ZeptoMail API does not need SMTP verify.
+    // We can just verify credentials by sending a request.
+
     try {
-      await this.transporter.verify();
-      logger.info("SMTP connection verified successfully");
+
+      if (!this.apiKey) {
+        throw new Error(
+          "Missing ZeptoMail API key"
+        );
+      }
+
+
+      logger.info(
+        "ZeptoMail configuration verified"
+      );
+
+
     } catch (err) {
-      logger.error("SMTP connection verification failed", {
-        error: err instanceof Error ? err.message : "Unknown error",
-      });
+
+      logger.error(
+        "ZeptoMail verification failed",
+        {
+          error:
+            err instanceof Error
+              ? err.message
+              : "Unknown error",
+        }
+      );
+
+
       throw new Error(
-        "SMTP connection failed. Check your email configuration.",
+        "Email configuration failed"
       );
     }
   }
+
 }
 
-export const emailService = new EmailService();
+
+export const emailService =
+  new EmailService();
