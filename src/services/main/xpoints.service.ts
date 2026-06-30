@@ -7,11 +7,7 @@ import {
 
 type PointEventType = "spend" | "receive";
 
-/**
- * Awards X Points to a user based on a transaction amount, then
- * recalculates and updates their tier. Safe to call after any
- * successful spend (transfer/contribution) or receive (webhook credit).
- */
+
 export async function awardXPoints(
   userId: string,
   amount: number,
@@ -22,7 +18,7 @@ export async function awardXPoints(
       ? calculateSpendPoints(amount)
       : calculateReceivePoints(amount);
 
-  if (pointsEarned <= 0) return; // nothing to award, skip the write
+  if (pointsEarned <= 0) return; 
 
   const user = await User.findByIdAndUpdate(
     userId,

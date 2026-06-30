@@ -4,9 +4,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
 
 export interface NombaCreateVirtualAccountPayload {
   accountRef: string;
@@ -57,10 +54,6 @@ interface NombaVirtualAccountResponse {
 
 
 
-// ─────────────────────────────────────────────
-// Error
-// ─────────────────────────────────────────────
-
 export class NombaProviderError extends Error {
 
   public statusCode?: number;
@@ -84,10 +77,6 @@ export class NombaProviderError extends Error {
 }
 
 
-
-// ─────────────────────────────────────────────
-// Token cache
-// ─────────────────────────────────────────────
 
 let accessToken: string | null = null;
 
@@ -181,9 +170,6 @@ const getNombaAccessToken = async (): Promise<string> => {
     accessToken =
       response.data.data.access_token;
 
-
-
-    // expire before Nomba expires
     tokenExpiry =
       Date.now() + (25 * 60 * 1000);
 
@@ -218,11 +204,6 @@ const getNombaAccessToken = async (): Promise<string> => {
 };
 
 
-
-
-// ─────────────────────────────────────────────
-// Nomba Service
-// ─────────────────────────────────────────────
 
 export const nombaService = {
 

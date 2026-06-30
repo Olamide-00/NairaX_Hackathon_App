@@ -37,8 +37,8 @@ function isRetryableAxiosError(error: unknown): boolean {
   const response = err.response as { status?: number } | undefined;
   const status = response?.status;
 
-  if (status === undefined) return true; // network-level failure
-  if (status === 429) return true; // rate-limited
+  if (status === undefined) return true; 
+  if (status === 429) return true; 
   if (status >= 500 && status < 600) return true;
 
   return false;

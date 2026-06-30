@@ -147,9 +147,7 @@ export const transferService = {
 
 
 
-  /**
-   * GET ALL BANKS
-   */
+ 
   
     async getBanks(): Promise<Bank[]> {
 
@@ -207,9 +205,7 @@ export const transferService = {
 
 
 
-  /**
-   * VERIFY ACCOUNT
-   */
+  
   async lookupAccount(
     accountNumber:string,
     bankCode:string
@@ -292,9 +288,7 @@ export const transferService = {
 
 
 
-  /**
-   * SEND TRANSFER
-   */
+  
   async transfer(
     payload:TransferPayload
   ){

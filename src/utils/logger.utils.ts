@@ -4,7 +4,7 @@ const { combine, timestamp, printf, colorize, errors, json } = winston.format;
 
 const isProduction = process.env.NODE_ENV === "production";
 
-// ─── Custom dev format ────────────────────────────────────────────────────────
+
 
 const devFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
   const metaStr = Object.keys(meta).length
@@ -13,7 +13,6 @@ const devFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
   return `${timestamp} [${level}]: ${stack ?? message}${metaStr}`;
 });
 
-// ─── Transports ───────────────────────────────────────────────────────────────
 
 const transports: winston.transport[] = [
   new winston.transports.Console({
@@ -42,7 +41,6 @@ if (isProduction) {
   );
 }
 
-// ─── Logger instance ──────────────────────────────────────────────────────────
 
 export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL ?? (isProduction ? "info" : "debug"),

@@ -31,12 +31,11 @@ export function getNextTierInfo(points: number): {
   nextTier: UserTier | null;
   pointsToNextTier: number;
 } {
-  // thresholds are sorted descending, so find the next one above current points
   const ascending = [...TIER_THRESHOLDS].reverse();
   const next = ascending.find((t) => t.minPoints > points);
 
   if (!next) {
-    return { nextTier: null, pointsToNextTier: 0 }; // already at Odogwu
+    return { nextTier: null, pointsToNextTier: 0 };
   }
 
   return {

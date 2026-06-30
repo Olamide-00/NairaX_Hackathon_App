@@ -3,12 +3,9 @@ import { Wallet } from "../../models/wallet.model";
 import { Transaction } from "../../models/transaction.model";
 import { randomUUID } from "crypto";
 
-/**
- * Settles a fund — credits creator wallet and closes the fund.
- * Triggered when amountRaised >= targetAmount OR deadline has passed.
- */
+
 export async function settleFund(fund: IAjoFund): Promise<void> {
-  if (fund.status !== "active") return; // already settled
+  if (fund.status !== "active") return; 
 
   const creatorWallet = await Wallet.findOne({ userId: fund.creatorId });
 
@@ -21,7 +18,7 @@ export async function settleFund(fund: IAjoFund): Promise<void> {
   const isGoalReached = fund.amountRaised >= fund.targetAmount;
 
   if (payoutAmount > 0) {
-    // Credit creator wallet atomically
+    // Credit creator wallet
     await Wallet.findByIdAndUpdate(creatorWallet._id, {
       $inc: { balance: payoutAmount, availableBalance: payoutAmount },
     });
@@ -41,10 +38,7 @@ export async function settleFund(fund: IAjoFund): Promise<void> {
   await fund.save();
 }
 
-/**
- * Checks a single fund and settles it if goal is reached or deadline has passed.
- * Call this after every contribution, and via a scheduled job for deadline sweeps.
- */
+
 export async function checkAndSettleFund(fundId: string): Promise<IAjoFund | null> {
   const fund = await AjoFund.findById(fundId);
 
@@ -60,10 +54,7 @@ export async function checkAndSettleFund(fundId: string): Promise<IAjoFund | nul
   return fund;
 }
 
-/**
- * Sweeps all active funds whose deadline has passed and settles them.
- * Run this on a cron job (e.g. every 5-10 minutes).
- */
+
 export async function sweepExpiredFunds(): Promise<number> {
   const expiredFunds = await AjoFund.find({
     status: "active",

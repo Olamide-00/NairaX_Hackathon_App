@@ -17,16 +17,11 @@ const generateCode = (): string =>
     .toString()
     .padStart(OTP_LENGTH, "0");
 
-// ─── Create OTP ───────────────────────────────────────────────────────────────
 
-/**
- * Deletes any previous OTP for the user and issues a fresh one.
- * Returns the plain-text code (caller is responsible for emailing it).
- */
 export const createOtp = async (
   userId: Types.ObjectId | string,
 ): Promise<string> => {
-  await Otp.deleteMany({ userId }); // one active OTP per user at a time
+  await Otp.deleteMany({ userId }); 
 
   const code = generateCode();
   const expiresAt = new Date(Date.now() + OTP_EXPIRES_MINUTES * 60 * 1000);
@@ -36,7 +31,7 @@ export const createOtp = async (
   return code;
 };
 
-// ─── Verify OTP ───────────────────────────────────────────────────────────────
+
 
 export const verifyOtp = async (
   userId: Types.ObjectId | string,
@@ -85,17 +80,12 @@ export const verifyOtp = async (
   await otp.deleteOne();
 };
 
-// ─── Resend Guard ─────────────────────────────────────────────────────────────
 
-/**
- * Enforces a cooldown window before allowing a resend.
- * Throws if the user must wait longer.
- */
 export const assertResendAllowed = async (
   userId: Types.ObjectId | string,
 ): Promise<void> => {
   const existing = await Otp.findOne({ userId });
-  if (!existing) return; // no active OTP, resend is always fine
+  if (!existing) return; 
 
   const secondsSinceCreation =
     (Date.now() - existing.createdAt.getTime()) / 1000;

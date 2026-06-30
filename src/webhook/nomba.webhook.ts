@@ -14,17 +14,12 @@ export const nombaWebhook = async (
     const event = payload.event;
     const data = payload.data;
 
-    /*
-    ==============================
-    PAYMENT SUCCESS
-    Money entering wallet
-    ==============================
-    */
+
     if (event === "payment_success") {
       const accountNumber = data.accountNumber;
       const amount = Number(data.amount);
 
-      // Atomic — no race condition
+      // Atomic 
       const wallet = await Wallet.findOneAndUpdate(
         { bankAccountNumber: accountNumber },
         { $inc: { balance: amount, availableBalance: amount } },
@@ -47,12 +42,7 @@ export const nombaWebhook = async (
       });
     }
 
-    /*
-    ==============================
-    PAYOUT SUCCESS
-    Transfer confirmed — settle balance
-    ==============================
-    */
+
     if (event === "payout_success") {
       const merchantTxRef = data.merchantTxRef;
 
@@ -63,8 +53,6 @@ export const nombaWebhook = async (
       });
 
       if (transaction) {
-        // availableBalance was already deducted at initiation in makeTransfer
-        // now deduct balance to reflect confirmed settlement
         await Wallet.findByIdAndUpdate(transaction.walletId, {
           $inc: { balance: -transaction.amount },
         });
@@ -76,12 +64,7 @@ export const nombaWebhook = async (
       }
     }
 
-    /*
-    ==============================
-    PAYOUT FAILED / REFUND
-    Return reserved money
-    ==============================
-    */
+  
     if (event === "payout_failed" || event === "payout_refund") {
       const merchantTxRef = data.merchantTxRef;
 

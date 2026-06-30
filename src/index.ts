@@ -1,9 +1,9 @@
 export const AUTH = {
   JWT_ACCESS_EXPIRES: "15m",
   JWT_REFRESH_EXPIRES: "7d",
-  REFRESH_EXPIRES_MS: 7 * 24 * 60 * 60 * 1000, // 7 days
+  REFRESH_EXPIRES_MS: 7 * 24 * 60 * 60 * 1000, 
   MAX_LOGIN_ATTEMPTS: 5,
-  LOCK_DURATION_MS: 15 * 60 * 1000, // 15 minutes
+  LOCK_DURATION_MS: 15 * 60 * 1000,
   BCRYPT_ROUNDS: 12,
 } as const;
 

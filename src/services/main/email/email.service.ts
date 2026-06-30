@@ -52,7 +52,6 @@ class EmailService {
       });
       logger.info("Email sent successfully", { to, subject: template.subject });
     } catch (err) {
-      // Don't expose internal error details to users
       logger.error("Email send failed", {
         to,
         subject: template.subject,
