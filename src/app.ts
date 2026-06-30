@@ -14,6 +14,12 @@ const app = express();
 
 app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL || "*", credentials: true }));
+
+
+
+//webhook
+app.use("/api/v1/webhook", WebhookRoutes);
+
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -51,7 +57,7 @@ app.get("/health", (_req, res) =>
 app.use("/api/v1/auth", Authroutes);
 app.use("/api/v1/wallet", WalletRoutes);
 app.use("/api/v1", TransferRoutes);
-app.use("/api/v1/webhook", WebhookRoutes);
+
 
 
 app.use("/api/v1/ajo", AjoRoutes);

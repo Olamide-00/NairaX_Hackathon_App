@@ -17,7 +17,6 @@ export const nombaWebhook = async (
     const transaction = data?.transaction;
     const customer = data?.customer;
 
-  
     if (event === "payment_success") {
       const accountNumber = transaction?.aliasAccountNumber;
       const amount = Number(transaction?.transactionAmount);
@@ -29,7 +28,6 @@ export const nombaWebhook = async (
         return;
       }
 
-    
       const existing = await Transaction.findOne({ reference });
 
       if (existing) {
@@ -61,7 +59,83 @@ export const nombaWebhook = async (
       await awardXPoints(wallet.userId.toString(), amount, "receive");
     }
 
-  
+
+    if (event === "payment_failed") {
+      const reference = transaction?.transactionId;
+
+      console.log("PAYMENT FAILED:", reference);
+
+      if (!reference) {
+        console.warn("payment_failed missing transactionId", payload);
+        res.status(400).json({ success: false, message: "Malformed payload" });
+        return;
+      }
+
+
+      const existing = await Transaction.findOne({ reference });
+
+      if (!existing) {
+        await Transaction.create({
+          type: "credit",
+          amount: Number(transaction?.transactionAmount) || 0,
+          status: "failed",
+          reference,
+          description: `Failed incoming payment from ${customer?.senderName || "unknown sender"}`,
+        });
+      }
+    }
+
+    if (event === "payment_reversal") {
+  const reference = transaction?.transactionId;
+  const amount = Number(transaction?.transactionAmount);
+
+  if (!reference || !amount) {
+    console.warn("payment_reversal missing required fields", payload);
+    res.status(400).json({ success: false, message: "Malformed payload" });
+    return;
+  }
+
+  const originalTransaction = await Transaction.findOne({
+    reference,
+    type: "credit",
+    status: "success",
+  });
+
+  if (!originalTransaction) {
+    console.warn(
+      "payment_reversal — no matching original credit found",
+      reference
+    );
+    res.json({ success: true, message: "No matching transaction to reverse" });
+    return;
+  }
+
+  if (originalTransaction.status === "reversed") {
+    res.json({ success: true, message: "Already reversed" });
+    return;
+  }
+
+  await Wallet.findByIdAndUpdate(originalTransaction.walletId, {
+    $inc: { balance: -amount, availableBalance: -amount },
+  });
+
+  await Transaction.findOneAndUpdate(
+    { reference, type: "credit" },
+    { status: "reversed" }
+  );
+
+
+  await Transaction.create({
+    userId: originalTransaction.userId,
+    walletId: originalTransaction.walletId,
+    type: "debit",
+    amount,
+    status: "success",
+    reference: `${reference}-REVERSAL`,
+    description: "Payment reversal — funds returned to sender",
+  });
+}
+ 
     if (event === "payout_success") {
       const merchantTxRef = transaction?.merchantTxRef;
 
@@ -89,7 +163,7 @@ export const nombaWebhook = async (
       }
     }
 
-  
+
     if (event === "payout_failed" || event === "payout_refund") {
       const merchantTxRef = transaction?.merchantTxRef;
 

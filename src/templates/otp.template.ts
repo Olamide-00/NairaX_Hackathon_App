@@ -1,4 +1,3 @@
-// ─── OTP Template ─────────────────────────────────────────────────────────────
 
 export const otpTemplate = (
   firstName: string,
@@ -47,7 +46,7 @@ export const otpTemplate = (
 </html>`,
 });
 
-// ─── Welcome Template ──────────────────────────────────────────────────────────
+
 
 export const welcomeTemplate = (firstName: string) => ({
   subject: "Welcome to NairaX 🎉",

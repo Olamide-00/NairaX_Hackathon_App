@@ -1,11 +1,11 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export type TransactionType = "credit" | "debit";
-export type TransactionStatus = "pending" | "success" | "failed";
+export type TransactionStatus = "pending" | "success" | "failed" | "reversed";
 
 export interface ITransaction extends Document {
-  userId: mongoose.Types.ObjectId;
-  walletId: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;
+  walletId?: mongoose.Types.ObjectId;
   type: TransactionType;
   amount: number;
   status: TransactionStatus;
@@ -20,12 +20,12 @@ const TransactionSchema = new Schema<ITransaction>(
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
     },
     walletId: {
       type: Schema.Types.ObjectId,
       ref: "Wallet",
-      required: true,
+      required: false,
     },
     type: {
       type: String,
@@ -38,7 +38,7 @@ const TransactionSchema = new Schema<ITransaction>(
     },
     status: {
       type: String,
-      enum: ["pending", "success", "failed"],
+      enum: ["pending", "success", "failed", "reversed"],
       default: "pending",
     },
     reference: {

@@ -17,8 +17,6 @@ export function signAccessToken(payload: TokenPayload | string): string {
   const tokenPayload =
     typeof payload === "string" ? { userId: payload } : payload;
 
-  // ✅ Always use string format for expiry — never parseInt
-  // env var should be a string like "15m", "1h", "7d" — NOT a number
   const expiry = process.env.JWT_ACCESS_EXPIRATION ?? "15m";
 
   return jwt.sign(tokenPayload, secret, {
