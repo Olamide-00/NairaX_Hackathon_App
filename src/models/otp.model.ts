@@ -23,7 +23,6 @@ const OtpSchema = new Schema<IOtp>(
   { timestamps: { createdAt: true, updatedAt: false } },
 );
 
-// Auto-delete expired documents via MongoDB TTL index
 OtpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export const Otp = model<IOtp>("Otp", OtpSchema);

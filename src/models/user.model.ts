@@ -4,6 +4,16 @@ import { AUTH } from "..";
 
 export type Gender = "male" | "female";
 
+export type UserTier =
+  | "Starter"
+  | "Hustler"
+  | "Grinder"
+  | "Big Player"
+  | "Big Boss"
+  | "Don"
+  | "Legend"
+  | "Odogwu";
+
 export interface IUser extends Document {
   email: string;
   password: string;
@@ -19,6 +29,8 @@ export interface IUser extends Document {
   lastLoginAt?: Date;
   age?: number;
   gender?: Gender;
+  xPoints: number;
+  tier: UserTier;
   createdAt: Date;
   updatedAt: Date;
 
@@ -59,11 +71,30 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: ["male", "female"],
     },
+    xPoints: {
+      type: Number,
+      default: 0,
+    },
+    tier: {
+      type: String,
+      enum: [
+        "Starter",
+        "Hustler",
+        "Grinder",
+        "Big Player",
+        "Big Boss",
+        "Don",
+        "Legend",
+        "Odogwu",
+      ],
+      default: "Starter",
+    },
   },
   { timestamps: true },
 );
+userSchema.index({ xPoints: -1 }); 
 
-// ─── Hooks ────────────────────────────────────────────────────────────────────
+// hooks
 
 userSchema.pre("save", async function (this: IUser) {
   if (!this.isModified("password")) return;
@@ -71,7 +102,7 @@ userSchema.pre("save", async function (this: IUser) {
   if (!this.isNew) this.passwordChangedAt = new Date();
 });
 
-// ─── Methods ──────────────────────────────────────────────────────────────────
+// methods
 
 userSchema.methods.comparePassword = function (candidate: string) {
   return bcrypt.compare(candidate, this.password);

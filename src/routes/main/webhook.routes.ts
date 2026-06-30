@@ -1,14 +1,14 @@
-import {Router} from "express";
-import { nombaWebhook } from "../../webhook/nomba.webhook";
+import { Router, raw } from "express";
+import { nombaWebhook } from "../../controllers/main/webhook.controller";
+import { verifyNombaSignature } from "../../middlewares/verifyNomba.middleware";
 
-
-const router=Router();
-
+const router = Router();
 
 router.post(
- "/nomba",
- nombaWebhook
+  "/nomba",
+  raw({ type: "application/json" }), 
+  verifyNombaSignature,
+  nombaWebhook
 );
-
 
 export default router;

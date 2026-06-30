@@ -61,7 +61,7 @@ export const setupAccount = async (
 
     const accountRef = `${userId}-${randomUUID()}`;
 
-    // Only send what Nomba needs — pin, age, gender stay internal
+ 
     const nombaPayload: NombaCreateVirtualAccountPayload = {
       accountRef,
       accountName,
@@ -110,7 +110,7 @@ export const setupAccount = async (
     // Save age and gender to user model
     await User.findByIdAndUpdate(userId, { age, gender });
 
-    // Create wallet — pin is hashed by the pre('save') hook
+    // Create wallet 
     const wallet = await Wallet.create({
       userId,
       provider: "nomba",

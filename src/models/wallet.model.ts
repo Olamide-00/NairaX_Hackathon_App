@@ -89,14 +89,14 @@ const WalletSchema = new Schema<IWallet>(
   { timestamps: true }
 );
 
-// ─── Hooks ────────────────────────────────────────────────────────────────────
+// hooks
 
 WalletSchema.pre("save", async function (this: IWallet) {
   if (!this.isModified("pin")) return;
   this.pin = await bcrypt.hash(this.pin, 10);
 });
 
-// ─── Methods ──────────────────────────────────────────────────────────────────
+// methods
 
 WalletSchema.methods.comparePin = function (candidate: string) {
   return bcrypt.compare(candidate, this.pin);

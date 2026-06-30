@@ -8,29 +8,9 @@ export const validate =
   (req: Request, res: Response, next: NextFunction) => {
 
     try {
-
-
       let dataToValidate = req.body;
-
-
-      /**
-       * Backward compatibility:
-       *
-       * If schema contains:
-       * {
-       *   body: {...}
-       * }
-       *
-       * validate full request object
-       *
-       * Otherwise validate only body
-       */
-
       const shape = schema.shape;
-
-
       if ("body" in shape) {
-
         dataToValidate = {
           body: req.body,
           params: req.params,
@@ -43,16 +23,6 @@ export const validate =
 
       const validated =
         schema.parse(dataToValidate);
-
-
-
-      /**
-       * Keep controller compatibility
-       *
-       * If schema wrapped body,
-       * restore req.body only
-       */
-
       if ("body" in shape) {
 
         req.body = validated.body;
@@ -62,9 +32,6 @@ export const validate =
         req.body = validated;
 
       }
-
-
-
       next();
 
 

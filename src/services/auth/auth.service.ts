@@ -23,7 +23,7 @@ interface AuthTokens {
   refreshToken: string;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// helper
 
 const sanitizeUser = (user: IUser) => ({
   id: user._id,
@@ -47,12 +47,8 @@ const issueTokens = async (user: IUser): Promise<AuthTokens> => {
   return { accessToken, refreshToken };
 };
 
-// ─── Register ─────────────────────────────────────────────────────────────────
+// signup
 
-/**
- * Creates an unverified account, sends an OTP email.
- * No tokens are issued until the user verifies.
- */
 export const register = async (input: RegisterInput) => {
   const existing = await User.findOne({ email: input.email });
   if (existing) {
@@ -71,7 +67,6 @@ export const register = async (input: RegisterInput) => {
 
   const code = await createOtp(user._id);
 
-  // Fire-and-forget — if email fails, we surface the error so the client can trigger a resend
   await emailService.send(
     user.email,
     otpTemplate(user.firstName, code, OTP_EXPIRES_MINUTES),
@@ -84,7 +79,7 @@ export const register = async (input: RegisterInput) => {
   };
 };
 
-// ─── Verify OTP (email verification) ─────────────────────────────────────────
+// verify otp
 
 export const verifyEmail = async (email: string, otp: string) => {
   const user = await User.findOne({ email });
@@ -107,9 +102,8 @@ export const verifyEmail = async (email: string, otp: string) => {
   user.isActive = true;
   await user.save();
 
-  // Send welcome email — non-blocking, failure doesn't affect the response
+  // Send welcome email 
   emailService.send(user.email, welcomeTemplate(user.firstName)).catch(() => {
-    /* already logged inside emailService */
   });
 
   const tokens = await issueTokens(user);
@@ -121,12 +115,11 @@ export const verifyEmail = async (email: string, otp: string) => {
   };
 };
 
-// ─── Resend OTP ───────────────────────────────────────────────────────────────
+// resend otp
 
 export const resendOtp = async (email: string) => {
   const user = await User.findOne({ email });
   if (!user) {
-    // Return generic message to avoid email enumeration
     return { message: "If that email exists, a new OTP has been sent." };
   }
 
@@ -149,7 +142,7 @@ export const resendOtp = async (email: string) => {
   return { message: "If that email exists, a new OTP has been sent." };
 };
 
-// ─── Login ────────────────────────────────────────────────────────────────────
+// login
 
 export const login = async ({ email, password }: LoginInput) => {
   const user = await User.findOne({ email }).select("+password +refreshToken");
@@ -201,7 +194,7 @@ export const login = async ({ email, password }: LoginInput) => {
   return { user: sanitizeUser(user), ...tokens };
 };
 
-// ─── Refresh Token ─────────────────────────────────────────────────────────────
+// refresh token
 
 export const refreshTokens = async (token: string): Promise<AuthTokens> => {
   let payload: { userId: string };
@@ -232,12 +225,12 @@ export const refreshTokens = async (token: string): Promise<AuthTokens> => {
   return issueTokens(user);
 };
 
-// ─── Logout ───────────────────────────────────────────────────────────────────
+// logout
 
 export const logout = async (userId: string) => {
   await User.findByIdAndUpdate(userId, { refreshToken: null });
 };
 
-// ─── Get Me ───────────────────────────────────────────────────────────────────
+// currentUser
 
 export const getMe = (user: IUser) => sanitizeUser(user);

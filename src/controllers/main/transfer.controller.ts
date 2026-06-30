@@ -8,6 +8,7 @@ import { Wallet } from "../../models/wallet.model";
 import { Transaction } from "../../models/transaction.model";
 import { catchAsync } from "../../utils/response.utils";
 import { AppError } from "../../utils/response.utils";
+import { awardXPoints } from "../../services/main/xpoints.service";
 
 
 export const getBanks = catchAsync(async (
@@ -54,8 +55,7 @@ export const makeTransfer = catchAsync(async (
 
   const merchantTxRef = `TX-${randomUUID()}`;
 
-  // Step 1: Atomic balance check + availableBalance deduction
-  // findOneAndUpdate returns null if balance is insufficient — no race condition
+
   const wallet = await Wallet.findOneAndUpdate(
     {
       userId: req.user._id,
@@ -80,7 +80,7 @@ export const makeTransfer = catchAsync(async (
     throw new AppError("Insufficient balance", 400);
   }
 
-  // Step 2: Create pending transaction record
+
   const transaction = await Transaction.create({
     userId: req.user._id,
     walletId: wallet._id,
@@ -91,7 +91,7 @@ export const makeTransfer = catchAsync(async (
     description: narration || `Transfer to ${accountName}`,
   });
 
-  // Step 3: Call Nomba
+
   try {
     const result = await transferService.transfer({
       amount,
@@ -103,11 +103,11 @@ export const makeTransfer = catchAsync(async (
       narration,
     });
 
-    // Step 4a: Nomba accepted the transfer
-    // DO NOT deduct balance here — payout_success webhook handles that exclusively
+   
     await Transaction.findByIdAndUpdate(transaction._id, {
       status: "success",
     });
+    await awardXPoints(req.user._id.toString(), amount, "spend");
 
     res.status(201).json({
       success: true,
@@ -115,8 +115,7 @@ export const makeTransfer = catchAsync(async (
       data: result,
     });
   } catch (error) {
-    // Step 4b: Nomba rejected — refund the reserved availableBalance
-    // DO NOT touch balance — it was never deducted
+  
     await Wallet.findByIdAndUpdate(wallet._id, {
       $inc: { availableBalance: amount },
     });

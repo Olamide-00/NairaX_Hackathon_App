@@ -14,13 +14,14 @@ import {
 } from "../../validations/ajoFund.schema";
 
 import { checkAndSettleFund } from "../../services/main/ajoFund.service";
+import { awardXPoints } from "../../services/main/xpoints.service";
 
 const generateInviteCode = customAlphabet(
-  "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
+  "ABCDEFGHJKLMNPQRSTUVWXYZ234567890",
   6
 );
 
-// ─── CREATE ────────────────────────────────────────────────────────────────
+//create
 
 export const createFund = async (
   req: Request,
@@ -54,7 +55,7 @@ export const createFund = async (
       category,
       deadline: new Date(deadline),
       amountRaised: 0,
-      joinedUsers: [req.user._id], // creator is auto-joined
+      joinedUsers: [req.user._id], 
       ...(visibility === "private" && {
         inviteCode: generateInviteCode(),
       }),
@@ -74,7 +75,7 @@ export const createFund = async (
   }
 };
 
-// ─── JOIN (private funds only) ──────────────────────────────────────────────
+// join private ajo
 
 export const joinFund = async (
   req: Request,
@@ -140,7 +141,7 @@ export const joinFund = async (
   }
 };
 
-// ─── CONTRIBUTE / PAY ────────────────────────────────────────────────────────
+// contribute
 
 export const contributeToFund = async (
   req: Request,
@@ -178,7 +179,7 @@ export const contributeToFund = async (
       return;
     }
 
-    // Private funds — only joined users can contribute
+    // only joined users can contribute
     if (fund.visibility === "private") {
       const isJoined = fund.joinedUsers.some(
         (id) => id.toString() === req.user!._id.toString()
@@ -195,7 +196,7 @@ export const contributeToFund = async (
 
     const reference = `AJO-CONTRIB-${randomUUID()}`;
 
-    // Step 1: Atomic deduction from contributor's wallet — no race condition
+    
     const contributorWallet = await Wallet.findOneAndUpdate(
       {
         userId: req.user._id,
@@ -214,7 +215,7 @@ export const contributeToFund = async (
       return;
     }
 
-    // Step 2: Record contribution
+    
     await AjoFundContribution.create({
       fundId: fund._id,
       userId: req.user._id,
@@ -222,7 +223,7 @@ export const contributeToFund = async (
       reference,
     });
 
-    // Step 3: Log as a debit transaction in the user's main history
+   
     await Transaction.create({
       userId: req.user._id,
       walletId: contributorWallet._id,
@@ -232,15 +233,17 @@ export const contributeToFund = async (
       reference,
       description: `AjoFund contribution — "${fund.title}"`,
     });
-
-    // Step 4: Increment fund's raised amount atomically
+     
+    await awardXPoints(req.user._id.toString(), amount, "spend");
+    
+   
     const updatedFund = await AjoFund.findByIdAndUpdate(
       fund._id,
       { $inc: { amountRaised: amount } },
       { new: true }
     );
 
-    // Step 5: Auto-join contributor if not already joined (public funds)
+  
     if (updatedFund && !updatedFund.joinedUsers.some(
       (id) => id.toString() === req.user!._id.toString()
     )) {
@@ -248,7 +251,7 @@ export const contributeToFund = async (
       await updatedFund.save();
     }
 
-    // Step 6: Check if goal reached — settle immediately if so
+
     const finalFund = await checkAndSettleFund(fund._id.toString());
 
     res.status(201).json({
@@ -272,7 +275,7 @@ export const contributeToFund = async (
   }
 };
 
-// ─── FETCH PUBLIC FUNDS ──────────────────────────────────────────────────────
+// get public fnds
 
 export const getPublicFunds = async (
   req: Request,
@@ -320,7 +323,7 @@ export const getPublicFunds = async (
   }
 };
 
-// ─── FETCH SINGLE FUND + LEADERBOARD ─────────────────────────────────────────
+
 
 export const getFundById = async (
   req: Request,
@@ -344,7 +347,7 @@ export const getFundById = async (
       return;
     }
 
-    // Private funds — only visible to joined users
+
     if (fund.visibility === "private") {
       const isJoined = fund.joinedUsers.some(
         (id) => id.toString() === req.user!._id.toString()
@@ -359,7 +362,7 @@ export const getFundById = async (
       }
     }
 
-    // Leaderboard — highest contributor first, aggregated per user
+
     const leaderboard = await AjoFundContribution.aggregate([
       { $match: { fundId: fund._id } },
       {
@@ -405,7 +408,7 @@ export const getFundById = async (
   }
 };
 
-// ─── FETCH MY FUNDS (created + joined) ───────────────────────────────────────
+
 
 export const getMyFunds = async (
   req: Request,
@@ -434,7 +437,6 @@ export const getMyFunds = async (
   }
 };
 
-// ─── FETCH CONTRIBUTION HISTORY FOR A FUND ───────────────────────────────────
 
 export const getFundContributions = async (
   req: Request,

@@ -8,7 +8,6 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction,
 ) => {
-  // Known operational error
   if (err instanceof AppError) {
     res.status(err.statusCode).json({
       success: false,
@@ -17,8 +16,6 @@ export const errorHandler = (
     });
     return;
   }
-
-  // Mongoose duplicate key
   if ((err as any).code === 11000) {
     const field = Object.keys((err as any).keyValue ?? {})[0];
     res.status(HTTP.CONFLICT).json({
@@ -28,8 +25,6 @@ export const errorHandler = (
     });
     return;
   }
-
-  // Mongoose validation error
   if (err.name === "ValidationError") {
     res.status(HTTP.BAD_REQUEST).json({
       success: false,

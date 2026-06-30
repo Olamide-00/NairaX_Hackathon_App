@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { randomUUID } from "crypto";
 
 import { Wallet } from "../../models/wallet.model";
-// import { User } from "../../models/user.model";
+
 
 import { confirmPinSchema } from "../../validations/pin.schema";
 

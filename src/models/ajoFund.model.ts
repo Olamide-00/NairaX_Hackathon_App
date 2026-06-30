@@ -68,7 +68,7 @@ const AjoFundSchema = new Schema<IAjoFund>(
     inviteCode: {
       type: String,
       unique: true,
-      sparse: true, // only private funds have this
+      sparse: true, 
     },
     joinedUsers: [
       {

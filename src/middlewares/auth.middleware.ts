@@ -17,7 +17,7 @@ export const protect = async (
   _res: Response,
   next: NextFunction,
 ) => {
-  // ── LOG 1: Every incoming request ─────────────────────────────────────────
+
   console.log("=== [protect] middleware hit ===");
   console.log("[protect] method:", req.method);
   console.log("[protect] url:", req.originalUrl);
@@ -27,7 +27,6 @@ export const protect = async (
     const header = req.headers.authorization;
 
     if (!header?.startsWith("Bearer ")) {
-      // ── LOG 2: No token at all ─────────────────────────────────────────
       console.log("[protect] ❌ No Bearer token found in Authorization header");
       console.log("[protect] All headers received:", JSON.stringify(req.headers, null, 2));
       throw new AppError("No token provided", HTTP.UNAUTHORIZED, "NO_TOKEN");
@@ -35,7 +34,7 @@ export const protect = async (
 
     const token = header.split(" ")[1];
 
-    // ── LOG 3: Token found, attempting verify ──────────────────────────────
+  
     console.log("[protect] ✅ Token found, length:", token.length);
     console.log("[protect] Token preview:", `${token.slice(0, 20)}...`);
 
@@ -44,7 +43,6 @@ export const protect = async (
       decoded = verifyAccessToken(token);
       console.log("[protect] ✅ Token verified, userId:", decoded.userId);
     } catch (verifyErr: any) {
-      // ── LOG 4: Token verification failed ────────────────────────────────
       console.log("[protect] ❌ Token verification failed:", verifyErr.name, verifyErr.message);
       throw verifyErr;
     }
@@ -52,7 +50,6 @@ export const protect = async (
     const { userId } = decoded;
     const user = await User.findById(userId);
 
-    // ── LOG 5: User lookup result ──────────────────────────────────────────
     console.log("[protect] User lookup result:", {
       found: !!user,
       isActive: user?.isActive ?? "N/A",
@@ -68,8 +65,6 @@ export const protect = async (
         "INVALID_USER",
       );
     }
-
-    // ── LOG 6: All good ────────────────────────────────────────────────────
     console.log("[protect] ✅ Auth passed, calling next()");
     req.user = user;
     next();
