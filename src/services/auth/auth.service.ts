@@ -48,9 +48,9 @@ const issueTokens = async (user: IUser): Promise<AuthTokens> => {
 };
 
 // signup
-
 export const register = async (input: RegisterInput) => {
   const existing = await User.findOne({ email: input.email });
+
   if (existing) {
     throw new AppError(
       "Email already registered",
@@ -67,10 +67,23 @@ export const register = async (input: RegisterInput) => {
 
   const code = await createOtp(user._id);
 
-  await emailService.send(
-    user.email,
-    otpTemplate(user.firstName, code, OTP_EXPIRES_MINUTES),
-  );
+
+  try {
+    await emailService.send(
+      user.email,
+      otpTemplate(
+        user.firstName,
+        code,
+        OTP_EXPIRES_MINUTES
+      ),
+    );
+  } catch (error) {
+    console.error(
+      "OTP email failed:",
+      error
+    );
+  }
+
 
   return {
     user: sanitizeUser(user),
@@ -78,7 +91,6 @@ export const register = async (input: RegisterInput) => {
       "Registration successful. Please check your email for a verification code.",
   };
 };
-
 // verify otp
 
 export const verifyEmail = async (email: string, otp: string) => {
