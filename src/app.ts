@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import Authroutes from "./routes/auth/auth.route";
 import WalletRoutes from "./routes/main/wallet.routes";
 import TransferRoutes from "./routes/main/transfer.routes"
+import AjoRoutes from "./routes/main/ajoFund.routes";
 import WebhookRoutes from "./routes/main/webhook.routes";
 import { errorHandler } from "./middlewares/error.middleware";
 
@@ -53,6 +54,8 @@ app.use("/api/v1/wallet", WalletRoutes);
 app.use("/api/v1", TransferRoutes);
 app.use("/api/v1/webhook", WebhookRoutes);
 
+
+app.use("/api/v1/ajo", AjoRoutes);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────
 app.use((_req, res) =>

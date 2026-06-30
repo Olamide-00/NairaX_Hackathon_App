@@ -10,9 +10,9 @@ const router = Router();
 
 router.post(
   "/setup",
-  protect,                              // ← 1. verify JWT, attach req.user
-  validate(accountSetupRequestSchema),  // ← 2. validate body
-  setupAccount,                         // ← 3. run controller
+  protect,                              
+  validate(accountSetupRequestSchema),  
+  setupAccount,                         
 );
 
 router.post(
