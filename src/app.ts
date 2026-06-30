@@ -9,6 +9,7 @@ import TransferRoutes from "./routes/main/transfer.routes"
 import AjoRoutes from "./routes/main/ajoFund.routes";
 import WebhookRoutes from "./routes/main/webhook.routes";
 import { errorHandler } from "./middlewares/error.middleware";
+import "dotenv/config";
 
 const app = express();
 
