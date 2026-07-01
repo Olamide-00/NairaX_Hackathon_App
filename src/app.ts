@@ -8,6 +8,7 @@ import WalletRoutes from "./routes/main/wallet.routes";
 import TransferRoutes from "./routes/main/transfer.routes"
 import AjoRoutes from "./routes/main/ajoFund.routes";
 import WebhookRoutes from "./routes/main/webhook.routes";
+import AiRoutes from "./routes/main/ai.routes";
 import { errorHandler } from "./middlewares/error.middleware";
 import "dotenv/config";
 
@@ -58,6 +59,7 @@ app.get("/health", (_req, res) =>
 app.use("/api/v1/auth", Authroutes);
 app.use("/api/v1/wallet", WalletRoutes);
 app.use("/api/v1", TransferRoutes);
+app.use("/api/v1/ai", AiRoutes);
 
 
 
