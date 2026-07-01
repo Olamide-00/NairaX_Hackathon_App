@@ -114,7 +114,6 @@ export const setupAccount = async (
     const wallet = await Wallet.create({
       userId,
       provider: "nomba",
-      accountHolderId: nombaData.accountHolderId,
       accountRef,
       accountName,
       bankName: nombaData.bankName,

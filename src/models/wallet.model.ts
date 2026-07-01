@@ -6,7 +6,6 @@ export type WalletStatus = "active" | "suspended" | "closed";
 export interface IWallet extends Document {
   userId: mongoose.Types.ObjectId;
   provider: string;
-  accountHolderId: string;
   accountRef: string;
   balance: number;
   availableBalance: number;
